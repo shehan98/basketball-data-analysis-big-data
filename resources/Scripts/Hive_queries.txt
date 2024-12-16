@@ -1,0 +1,76 @@
+-- Create a new Hive database
+CREATE DATABASE nba_analysis;
+
+
+-- Choose the database
+USE nba_analysis;
+
+
+-- Copy Data from MapReduce to Hive
+-- Create Hive External Table
+CREATE EXTERNAL TABLE cleaned_data (
+    event_id STRING,
+    event_num STRING,
+    game_id STRING,
+    home_description STRING,
+    time STRING,
+    period INT,
+    player1_id STRING,
+    player1_name STRING,
+    player1_team_abbr STRING,
+    player1_team_city STRING,
+    player1_team_id STRING,
+    player1_team_name STRING,
+    player2_id STRING,
+    player2_name STRING,
+    player2_team_abbr STRING,
+    player2_team_city STRING,
+    player2_team_id STRING,
+    player2_team_name STRING,
+    player3_id STRING,
+    player3_name STRING,
+    player3_team_abbr STRING,
+    player3_team_city STRING,
+    player3_team_id STRING,
+    player3_team_name STRING,
+    score STRING,
+    score_margin STRING,
+    visitor_description STRING
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE
+LOCATION 'hdfs://namenode:9000/user/test/output/cleanedData';
+
+
+-------------------------------------------------------------------------------------------------
+
+-------------Hive Queries for Analysis-----------------
+
+
+-- Top 5 Teams by Total Points Scored
+SELECT 
+    player1_team_name AS team_name,
+    SUM(CAST(SPLIT(score, ' - ')[0] AS INT)) AS total_points
+FROM 
+    cleaned_data
+GROUP BY 
+    player1_team_name
+ORDER BY 
+    total_points DESC
+LIMIT 5;
+
+
+-- Average Points Scored Per Quarter
+SELECT 
+    period AS quarter,
+    AVG(CAST(SPLIT(score, ' - ')[0] AS INT)) AS avg_home_points,
+    AVG(CAST(SPLIT(score, ' - ')[1] AS INT)) AS avg_visitor_points
+FROM 
+    cleaned_data
+WHERE 
+    period BETWEEN 1 AND 4
+GROUP BY 
+    period
+ORDER BY 
+    quarter;

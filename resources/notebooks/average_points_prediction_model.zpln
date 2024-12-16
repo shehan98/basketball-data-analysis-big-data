@@ -1,0 +1,252 @@
+﻿{
+  "paragraphs": [
+    {
+      "user": "anonymous",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/python",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://b8b45a7a1a01:4040/jobs/job?id=9",
+              "$$hashKey": "object:891"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1734364465342_1069067515",
+      "id": "paragraph_1734364465342_1069067515",
+      "dateCreated": "2024-12-16T15:54:25+0000",
+      "status": "FINISHED",
+      "focus": true,
+      "$$hashKey": "object:555",
+      "text": "%pyspark\n\n# Import necessary libraries\nfrom pyspark.sql import SparkSession\nfrom pyspark.sql.functions import col, regexp_extract\nfrom pyspark.ml.feature import VectorAssembler\nfrom pyspark.ml.regression import LinearRegression\nfrom pyspark.ml import Pipeline\nfrom pyspark.ml.evaluation import RegressionEvaluator\n\n# Initialize Spark Session\nspark = SparkSession.builder \\\n    .appName(\"NBA Analysis with Spark\") \\\n    .config(\"spark.hadoop.fs.defaultFS\", \"hdfs://namenode:9000\") \\\n    .config(\"spark.sql.catalogImplementation\", \"in-memory\") \\\n    .getOrCreate()\n\n# Define HDFS path\nhdfs_path = \"hdfs://namenode:9000/user/test/output/cleanedData\"\n\n# Load data into DataFrame\ndf = spark.read.csv(hdfs_path, header=False, inferSchema=False)\n\n# Assign column names to match the schema\ncolumn_names = [\n    \"event_id\", \"event_num\", \"game_id\", \"home_description\", \"time\", \"period\",\n    \"player1_id\", \"player1_name\", \"player1_team_abbr\", \"player1_team_city\",\n    \"player1_team_id\", \"player1_team_name\", \"player2_id\", \"player2_name\",\n    \"player2_team_abbr\", \"player2_team_city\", \"player2_team_id\", \"player2_team_name\",\n    \"player3_id\", \"player3_name\", \"player3_team_abbr\", \"player3_team_city\",\n    \"player3_team_id\", \"player3_team_name\", \"score\", \"score_margin\", \"visitor_description\"\n]\ndf = df.toDF(*column_names)",
+      "dateUpdated": "2024-12-16T15:55:39+0000",
+      "dateFinished": "2024-12-16T15:55:40+0000",
+      "dateStarted": "2024-12-16T15:55:39+0000",
+      "results": {
+        "code": "SUCCESS",
+        "msg": []
+      }
+    },
+    {
+      "text": "%pyspark\n# Extract home and visitor scores from 'score' column in 'X - Y' format\ndf = df.withColumn(\"home_score\", regexp_extract(col(\"score\"), r\"(\\d+)\\s*-\\s*\\d+\", 1).cast(\"int\")) \\\n       .withColumn(\"visitor_score\", regexp_extract(col(\"score\"), r\"\\d+\\s*-\\s*(\\d+)\", 1).cast(\"int\"))\n       \ndf = df.withColumn(\"player_points\", col(\"home_score\") + col(\"visitor_score\"))\n\n# Feature Engineering\ndf = df.withColumn(\"score_margin\", col(\"home_score\") - col(\"visitor_score\"))\n\n# Assemble the features into a feature vector\nassembler = VectorAssembler(\n    inputCols=[\"home_score\", \"visitor_score\", \"score_margin\"],  # Add any additional features here\n    outputCol=\"features\"\n)\n\n# Train-Test Split\ntrain_data, test_data = df.randomSplit([0.8, 0.2], seed=1234)\n\n# Initialize a Linear Regression model (for predicting player points)\nlr = LinearRegression(featuresCol=\"features\", labelCol=\"player_points\")\n\n# Create a pipeline with feature assembler and regression model\npipeline = Pipeline(stages=[assembler, lr])\n\n# Fit the model on the training data\nmodel = pipeline.fit(train_data)",
+      "user": "anonymous",
+      "dateUpdated": "2024-12-16T15:55:40+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/python",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://b8b45a7a1a01:4040/jobs/job?id=10",
+              "$$hashKey": "object:995"
+            },
+            {
+              "jobUrl": "http://b8b45a7a1a01:4040/jobs/job?id=11",
+              "$$hashKey": "object:996"
+            },
+            {
+              "jobUrl": "http://b8b45a7a1a01:4040/jobs/job?id=12",
+              "$$hashKey": "object:997"
+            },
+            {
+              "jobUrl": "http://b8b45a7a1a01:4040/jobs/job?id=13",
+              "$$hashKey": "object:998"
+            },
+            {
+              "jobUrl": "http://b8b45a7a1a01:4040/jobs/job?id=14",
+              "$$hashKey": "object:999"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1734364497387_754320885",
+      "id": "paragraph_1734364497387_754320885",
+      "dateCreated": "2024-12-16T15:54:57+0000",
+      "status": "FINISHED",
+      "focus": true,
+      "$$hashKey": "object:622",
+      "dateFinished": "2024-12-16T15:55:50+0000",
+      "dateStarted": "2024-12-16T15:55:40+0000",
+      "results": {
+        "code": "SUCCESS",
+        "msg": []
+      }
+    },
+    {
+      "text": "%pyspark\n# Make predictions on the test data\npredictions = model.transform(test_data)\n\n# Evaluate the model performance using RMSE (Root Mean Squared Error)\nevaluator = RegressionEvaluator(labelCol=\"player_points\", predictionCol=\"prediction\", metricName=\"rmse\")\nrmse = evaluator.evaluate(predictions)\n\nprint(f\"Root Mean Squared Error (RMSE): {rmse:.2f}\")",
+      "user": "anonymous",
+      "dateUpdated": "2024-12-16T15:55:50+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/python",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://b8b45a7a1a01:4040/jobs/job?id=15",
+              "$$hashKey": "object:1053"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1734364516460_535486656",
+      "id": "paragraph_1734364516460_535486656",
+      "dateCreated": "2024-12-16T15:55:16+0000",
+      "status": "FINISHED",
+      "focus": true,
+      "$$hashKey": "object:694",
+      "dateFinished": "2024-12-16T15:55:51+0000",
+      "dateStarted": "2024-12-16T15:55:50+0000",
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "Root Mean Squared Error (RMSE): 0.00\n"
+          }
+        ]
+      }
+    },
+    {
+      "text": "%pyspark\n# Show predictions\npredictions.select(\"player1_name\", \"prediction\", \"player_points\").show(20, truncate=False)",
+      "user": "anonymous",
+      "dateUpdated": "2024-12-16T15:55:51+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/python",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://b8b45a7a1a01:4040/jobs/job?id=16",
+              "$$hashKey": "object:1089"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1734364522907_239538396",
+      "id": "paragraph_1734364522907_239538396",
+      "dateCreated": "2024-12-16T15:55:22+0000",
+      "status": "FINISHED",
+      "focus": true,
+      "$$hashKey": "object:763",
+      "dateFinished": "2024-12-16T15:55:52+0000",
+      "dateStarted": "2024-12-16T15:55:51+0000",
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "+-----------------+------------------+-------------+\n|player1_name     |prediction        |player_points|\n+-----------------+------------------+-------------+\n|Austin Croshere  |6.999999999693948 |7            |\n|Dirk Nowitzki    |3.9999999996779336|4            |\n|Terrell Brandon  |3.9999999996861635|4            |\n|Jahidi White     |3.9999999996861635|4            |\n|Doug Christie    |9.99999999970996  |10           |\n|Clifford Robinson|5.999999999680379 |6            |\n|Desmond Mason    |3.9999999996779336|4            |\n|Shandon Anderson |2.999999999680826 |3            |\n|Tim Thomas       |5.999999999688609 |6            |\n|Jason Kidd       |4.999999999687388 |5            |\n|Chris Webber     |7.999999999699284 |8            |\n|Marcus Fizer     |36.99999999979235 |37           |\n|Cuttino Mobley   |43.99999999981737 |44           |\n|Antonio McDyess  |60.99999999985461 |61           |\n|DeShawn Stevenson|44.99999999983093 |45           |\n|Lindsey Hunter   |48.99999999984406 |49           |\n|Kevin Garnett    |32.99999999978334 |33           |\n|Nick Van Exel    |51.999999999839496|52           |\n|Derek Anderson   |42.99999999982438 |43           |\n|Jason Kidd       |44.999999999835055|45           |\n+-----------------+------------------+-------------+\nonly showing top 20 rows\n\n"
+          }
+        ]
+      }
+    }
+  ],
+  "name": "average_points_prediction_model",
+  "id": "2KEJJQ47W",
+  "defaultInterpreterGroup": "spark",
+  "version": "0.9.0",
+  "noteParams": {},
+  "noteForms": {},
+  "angularObjects": {},
+  "config": {
+    "isZeppelinNotebookCronEnable": false,
+    "looknfeel": "default",
+    "personalizedMode": "false"
+  },
+  "info": {},
+  "path": "/average_points_prediction_model"
+}

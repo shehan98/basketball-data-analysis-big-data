@@ -1,0 +1,79 @@
+-- Create a query to identify the quarter with the highest total score for each team.
+SELECT 
+    player1_team_name AS team,
+    period AS quarter,
+    SUM(CAST(SPLIT(score, ' - ')[0] AS INT)) AS total_points
+FROM 
+    nba_analysis.cleaned_data
+WHERE 
+    period BETWEEN 1 AND 4
+GROUP BY 
+    player1_team_name, period
+ORDER BY 
+    player1_team_name, total_points DESC;
+
+
+---------------------------------------------------------------------------------------------------------------
+-- Create a query to calculate the total points scored by each team.
+SELECT 
+    player1_team_name AS team,
+    SUM(CAST(SPLIT(score, ' - ')[0] AS INT)) AS total_points
+FROM 
+    nba_analysis.cleaned_data
+GROUP BY 
+    player1_team_name
+ORDER BY 
+    total_points DESC
+LIMIT 5;
+
+
+---------------------------------------------------------------------------------------------------------------
+-- Create a query to calculate the percentage of players scoring 40+ points in a single match.
+WITH player_scores AS (
+    SELECT 
+        player1_name AS player,
+        game_id,
+        SUM(CAST(SPLIT(score, ' - ')[0] AS INT)) AS total_points
+    FROM 
+        nba_analysis.cleaned_data
+    GROUP BY 
+        player1_name, game_id
+)
+SELECT 
+    (COUNT(DISTINCT CASE WHEN total_points >= 40 THEN player END) * 100.0 / COUNT(DISTINCT player)) AS percentage_40_plus
+FROM 
+    player_scores;
+
+
+---------------------------------------------------------------------------------------------------------------
+-- Create a query to calculate matches won and lost for each team.
+WITH team_scores AS (
+    SELECT 
+        game_id,
+        player1_team_name AS team,
+        MAX(CAST(SPLIT(score, ' - ')[0] AS INT)) AS team1_score,
+        MAX(CAST(SPLIT(score, ' - ')[1] AS INT)) AS team2_score
+    FROM 
+        nba_analysis.cleaned_data
+    GROUP BY 
+        game_id, player1_team_name
+),
+match_results AS (
+    SELECT 
+        game_id,
+        team,
+        CASE 
+            WHEN team1_score > team2_score THEN 'Win'
+            ELSE 'Loss'
+        END AS result
+    FROM 
+        team_scores
+)
+SELECT 
+    team,
+    result,
+    COUNT(*) AS total_matches
+FROM 
+    match_results
+GROUP BY 
+    team, result;

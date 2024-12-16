@@ -1,0 +1,4 @@
+docker network ls
+docker network connect nbadataanalysis-ml-model_default superset_app
+docker inspect -f '{{.NetworkSettings.Ports}}' hive-server
+docker network inspect nbadataanalysis-ml-model_default
