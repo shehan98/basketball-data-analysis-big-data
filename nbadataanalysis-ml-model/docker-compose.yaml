@@ -33,6 +33,7 @@ services:
     restart: always
     ports:
       - 8031:8031
+      - 8087:8088   # Expose the UI port
     environment:
       SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864"
     env_file:
